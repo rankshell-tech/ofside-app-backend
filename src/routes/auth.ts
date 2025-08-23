@@ -9,6 +9,7 @@ import {
 } from '../controllers/authController';
 import { authenticate } from '../middlewares/auth';
 import { authLimiter, otpLimiter } from '../middlewares/rateLimiter';
+import { resendOTP } from '../controllers/authController';
 
 const router = Router();
 
@@ -160,5 +161,33 @@ router.get('/profile', authenticate, getProfile);
  *         description: Unauthorized
  */
 router.put('/profile', authenticate, updateProfile);
+
+/**
+ * @swagger
+ * /api/auth/resend-otp:
+ *   post:
+ *     summary: Resend OTP
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               identifier:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *                 enum: [signup, login]
+ *     responses:
+ *       200:
+ *         description: OTP resent successfully
+ *       400:
+ *         description: Validation error
+ */
+router.post('/resend-otp', authLimiter, otpLimiter, resendOTP);
+
+
 
 export default router;

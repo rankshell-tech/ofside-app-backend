@@ -250,3 +250,60 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
     data: { user },
   });
 });
+
+export const resendOTP = asyncHandler(async (req: Request, res: Response) => {
+  const { identifier, type } = verifyOTPSchema.pick({ identifier: true, type: true }).parse(req.body);
+
+  // Find the latest OTP doc for this identifier and type
+  const otpDoc = await OTP.findOne({
+    identifier,
+    type,
+    verified: false,
+    expiresAt: { $gt: new Date() },
+  }).sort({ createdAt: -1 });
+
+  // If there's an unexpired OTP, reuse it; otherwise, generate a new one
+  let otp: string;
+  let expiresAt: Date;
+
+  if (otpDoc) {
+    otp = otpDoc.otp;
+    expiresAt = otpDoc.expiresAt;
+  } else {
+    otp = generateOTP();
+    expiresAt = generateOTPExpiry();
+
+    // For signup, preserve signupData if present in previous OTP
+    let signupData = undefined;
+    if (type === 'signup') {
+      const prevOTP = await OTP.findOne({ identifier, type }).sort({ createdAt: -1 });
+      signupData = prevOTP?.signupData;
+    }
+
+    await OTP.create({
+      identifier,
+      otp,
+      type,
+      expiresAt,
+      ...(signupData ? { signupData } : {}),
+    });
+  }
+
+  // Send OTP via email if identifier is an email
+  if (identifier.includes('@')) {
+    await sendEmailOTP(identifier, otp);
+    res.status(200).json({
+      success: true,
+      message: 'OTP resent successfully',
+      data: { identifier, sentTo: 'email' },
+    });
+  } else {
+    // Optionally, send via SMS if you support it
+    await sendSMSOTP(identifier, otp);
+    res.status(200).json({
+      success: true,
+      message: 'OTP resent successfully',
+      data: { identifier, sentTo: 'sms' },
+    });
+  }
+});

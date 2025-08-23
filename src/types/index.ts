@@ -144,7 +144,7 @@ export interface IOTP {
   _id?: string;
   identifier: string; // mobile or email
   otp: string;
-  type: 'signup' | 'login';
+  type: 'signup' | 'login' | 'resend';
   expiresAt: Date;
   verified: boolean;
   signupData?: any;
