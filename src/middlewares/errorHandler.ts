@@ -16,8 +16,7 @@ export const createError = (message: string, statusCode: number = 500): AppError
 export const errorHandler = (
   err: AppError | ZodError | any,
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ) => {
   let error = { ...err };
   error.message = err.message;
@@ -65,8 +64,10 @@ export const errorHandler = (
   });
 };
 
+
 export const notFound = (req: Request, res: Response, next: NextFunction) => {
-  const error = createError(`Route ${req.originalUrl} not found`, 404);
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  res.status(404);
   next(error);
 };
 

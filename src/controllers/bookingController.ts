@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { bookingSchema } from '../utils/validators';
 import { asyncHandler, createError } from '../middlewares/errorHandler';
 import { AuthRequest } from '../middlewares/auth';
@@ -44,7 +44,6 @@ export const createBooking = asyncHandler(async (req: AuthRequest, res: Response
   let totalPrice = court.pricePerSlot;
   
   // Check for peak hours
-  let isPeak = false;
   if (court.peakEnabled) {
     const dayOfWeek = bookingDate.getDay(); // 0 (Sunday) to 6 (Saturday)
     const isPeakDay = court.peakDays?.includes(dayOfWeek);
@@ -56,7 +55,6 @@ export const createBooking = asyncHandler(async (req: AuthRequest, res: Response
 
     if (isPeakDay && isPeakTime) {
       totalPrice = court.peakPricePerSlot || court.pricePerSlot;
-      isPeak = true;
     }
   }
 

@@ -22,6 +22,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     
     req.user = decoded;
     next();
+    return;
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -45,12 +46,12 @@ export const authorize = (...roles: number[]) => {
         message: 'Insufficient permissions',
       });
     }
-
     next();
+    return;
   };
 };
 
-export const optionalAuth = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const optionalAuth = (req: AuthRequest, _: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     

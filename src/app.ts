@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/', generalLimiter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_, res) => {
   res.status(200).json({
     success: true,
     message: 'Server is healthy',
