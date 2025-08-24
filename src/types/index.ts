@@ -52,7 +52,7 @@ export interface IVenue {
   isVerified?: boolean;
   pendingChanges?: any;
   rawVenueData?: any;
-  createdBy: string; // User ID
+  createdBy: string | Types.ObjectId; // User ID or Mongoose ObjectId
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -60,7 +60,7 @@ export interface IVenue {
 export interface ICourt {
   _id?: string;
   name: string;
-  venue: string; // Venue ID
+  venue: string | Types.ObjectId; // Venue ID or Mongoose ObjectId
   sportType: string;
   surfaceType?: string;
   size?: string;
@@ -82,6 +82,7 @@ export interface ICourt {
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  days?: number[];
 }
 
 export interface IBooking {

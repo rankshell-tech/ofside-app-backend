@@ -68,7 +68,7 @@ app.use('/api/analysis', analysisRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Welcome endpoint
-app.get('/', (req, res) => {
+app.get('/', (_, res) => {
   res.status(200).json({
     success: true,
     message: 'Welcome to Ofside Management API',

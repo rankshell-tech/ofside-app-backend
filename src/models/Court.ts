@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ICourt } from '../types';
 
-export interface ICourtDocument extends ICourt, Document {}
+export interface ICourtDocument extends Omit<ICourt, '_id'>, Document {}
 
 const courtSchema = new Schema<ICourtDocument>({
   name: {
@@ -10,7 +10,7 @@ const courtSchema = new Schema<ICourtDocument>({
     trim: true,
   },
   venue: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Venue',
     required: [true, 'Venue is required'],
   },

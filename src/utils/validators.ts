@@ -72,16 +72,24 @@ export const courtSchema = z.object({
   venue: z.string().min(1, 'Venue ID is required'),
   sportType: z.string().min(1, 'Sport type is required'),
   surfaceType: z.string().min(1, 'Surface type is required'),
-  slotDuration: z.number().min(15, 'Minimum slot duration is 15 minutes').max(240, 'Maximum slot duration is 240 minutes'),
+  size: z.string().optional(),
+  isIndoor: z.boolean().optional(),
+  hasLighting: z.boolean().optional(),
+  images: z.object({
+    cover: z.string().nullable().optional(),
+    logo: z.string().nullable().optional(),
+    others: z.array(z.string()).optional(),
+  }).optional(),
+  slotDuration: z.number().min(15, 'Minimum slot duration is 15 minutes').max(240, 'Maximum slot duration is 240 minutes').optional(),
   maxPeople: z.number().min(1, 'Minimum 1 person required').max(50, 'Maximum 50 people allowed'),
   pricePerSlot: z.number().min(0, 'Price cannot be negative'),
-  peakHours: z.object({
-    enabled: z.boolean().default(false),
-    days: z.array(z.number().min(0).max(6)).optional(),
-    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid start time format').optional(),
-    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid end time format').optional(),
-    peakPricePerSlot: z.number().min(0, 'Peak price cannot be negative').optional(),
-  }).optional(),
+  peakEnabled: z.boolean().optional(),
+  peakDays: z.array(z.string()).optional(),
+  peakStart: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid start time format').optional(),
+  peakEnd: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid end time format').optional(),
+  peakPricePerSlot: z.number().min(0, 'Peak price cannot be negative').optional(),
+  isActive: z.boolean().optional(),
+  days: z.array(z.number().min(0).max(6)).optional(),
 });
 
 // Booking validators

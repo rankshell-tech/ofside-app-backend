@@ -44,21 +44,27 @@ export const createBooking = asyncHandler(async (req: AuthRequest, res: Response
   let totalPrice = court.pricePerSlot;
   
   // Check for peak hours
-  if (court.peakHours?.enabled) {
-    const dayOfWeek = bookingDate.getDay();
-    const isPeakDay = court.peakHours.days?.includes(dayOfWeek);
-    const isPeakTime = startTime >= court.peakHours.startTime! && endTime <= court.peakHours.endTime!;
-    
+  let isPeak = false;
+  if (court.peakEnabled) {
+    const dayOfWeek = bookingDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+    const isPeakDay = court.peakDays?.includes(dayOfWeek);
+    const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+    const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+    const peakStartMinutes = court.peakStart ? parseInt(court.peakStart.split(':')[0]) * 60 + parseInt(court.peakStart.split(':')[1]) : 0;
+    const peakEndMinutes = court.peakEnd ? parseInt(court.peakEnd.split(':')[0]) * 60 + parseInt(court.peakEnd.split(':')[1]) : 0;
+    const isPeakTime = startMinutes >= peakStartMinutes && endMinutes <= peakEndMinutes;
+
     if (isPeakDay && isPeakTime) {
-      totalPrice = court.peakHours.peakPricePerSlot || court.pricePerSlot;
+      totalPrice = court.peakPricePerSlot || court.pricePerSlot;
+      isPeak = true;
     }
   }
-  
+
   // Calculate duration and multiply price
   const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
   const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
   const durationMinutes = endMinutes - startMinutes;
-  const slots = Math.ceil(durationMinutes / court.slotDuration);
+  const slots = Math.ceil(durationMinutes / (court.slotDuration || 60));
   
   totalPrice *= slots;
   
@@ -75,12 +81,11 @@ export const createBooking = asyncHandler(async (req: AuthRequest, res: Response
   
   // Get user details for notification
   const user = await User.findById(req.user?.userId);
-  
   // Send confirmation notification
   if (user) {
     const bookingDetails = {
       venueName: venue.venueName,
-      courtName: court.courtName,
+      courtName: court.name, // changed from court.courtName to court.name
       date: validatedData.date,
       time: `${startTime} - ${endTime}`,
       amount: totalPrice,
@@ -165,7 +170,7 @@ export const getBookingById = asyncHandler(async (req: AuthRequest, res: Respons
     // Additional check for venue owners
     if (req.user?.role === 1) {
       const venueDoc = await Venue.findById(venue._id);
-      if (venueDoc?.owner.toString() !== req.user?.userId) {
+      if (venueDoc?.createdBy.toString() !== req.user?.userId) {
         throw createError('Not authorized to view this booking', 403);
       }
     } else if (req.user?.role !== 2) {
@@ -193,7 +198,7 @@ export const cancelBooking = asyncHandler(async (req: AuthRequest, res: Response
   
   if (req.user?.role === 1) {
     const venue = await Venue.findById(booking.venue);
-    if (venue?.owner.toString() !== req.user?.userId) {
+    if (venue?.createdBy.toString() !== req.user?.userId) {
       throw createError('Not authorized to cancel this booking', 403);
     }
   }
@@ -237,8 +242,8 @@ export const getVenueBookings = asyncHandler(async (req: AuthRequest, res: Respo
   if (!venue) {
     throw createError('Venue not found', 404);
   }
-  
-  if (req.user?.role !== 2 && venue.owner.toString() !== req.user?.userId) {
+
+  if (req.user?.role !== 2 && venue.createdBy.toString() !== req.user?.userId) {
     throw createError('Not authorized to view bookings for this venue', 403);
   }
   
