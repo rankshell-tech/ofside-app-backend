@@ -14,7 +14,7 @@ export const loginSchema = z.object({
 
 export const verifyOTPSchema = z.object({
   identifier: z.string().min(1, 'Identifier is required'),
-  otp: z.string().regex(/^\d{6}$/, 'Invalid OTP format'),
+  otp: z.string().regex(/^\d{4}$/, 'Invalid OTP format'),
   type: z.enum(['signup', 'login']),
 });
 

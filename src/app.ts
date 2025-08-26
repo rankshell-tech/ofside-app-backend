@@ -17,6 +17,8 @@ import rulebookRoutes from './routes/rulebook';
 import analysisRoutes from './routes/analysis';
 import uploadRoutes from './routes/upload';
 
+
+
 const app = express();
 
 // Security middleware
@@ -28,7 +30,7 @@ app.use(helmet({
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://yourdomain.com', 'https://www.yourdomain.com']
-    : ['http://localhost:3000', 'http://localhost:3001'],
+    : ['http://localhost:8081', 'http://localhost:8081'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

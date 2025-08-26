@@ -71,7 +71,11 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
   });
 
   if (!otpDoc) {
-    throw createError('Invalid or expired OTP', 400);
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid or expired OTP',
+      data: null,
+    });
   }
 
   let user;
@@ -80,7 +84,11 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     // Get signup data from OTP doc
     const signupData = otpDoc.signupData;
     if (!signupData) {
-      throw createError('Signup data missing, please try again', 400);
+      return res.status(400).json({
+        success: false,
+        message: 'Signup data missing, please try again',
+        data: null,
+      });
     }
 
     user = await User.create({
@@ -97,7 +105,11 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      throw createError('User not found', 404);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+        data: null,
+      });
     }
   }
 
@@ -114,7 +126,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
 
   const tokens = generateTokens(tokenPayload);
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: type === 'signup' ? 'Account created successfully' : 'Login successful',
     data: {

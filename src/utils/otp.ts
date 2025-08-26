@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { config } from '../config/env';
 
-export const generateOTP = (length: number = 6): string => {
+export const generateOTP = (length: number = 4): string => {
   const digits = '0123456789';
   let otp = '';
   
