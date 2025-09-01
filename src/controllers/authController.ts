@@ -78,7 +78,7 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  let user;
+  let user: InstanceType<typeof User> | null;
 
   if (type === 'signup') {
     // Get signup data from OTP doc
@@ -119,9 +119,9 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
 
   // Generate tokens
   const tokenPayload = {
-    userId: user._id.toString(),
-    mobile: user.mobile,
-    role: user.role,
+    userId: (user!._id as string).toString(),
+    mobile: user!.mobile,
+    role: user!.role,
   };
 
   const tokens = generateTokens(tokenPayload);
@@ -189,36 +189,36 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 
-export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
+// export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
+//   const { refreshToken } = req.body;
   
-  if (!refreshToken) {
-    throw createError('Refresh token required', 400);
-  }
+//   if (!refreshToken) {
+//     throw createError('Refresh token required', 400);
+//   }
   
-  const decoded = verifyRefreshToken(refreshToken);
+//   const decoded = verifyRefreshToken(refreshToken);
   
-  // Verify user still exists
-  const user = await User.findById(decoded.userId);
-  if (!user || !user.isActive) {
-    throw createError('User not found or inactive', 404);
-  }
+//   // Verify user still exists
+//   const user = await User.findById(decoded.userId);
+//   if (!user || !user.isActive) {
+//     throw createError('User not found or inactive', 404);
+//   }
   
-  // Generate new access token
-  const tokenPayload = {
-    userId: user._id.toString(),
-    mobile: user.mobile,
-    role: user.role,
-  };
+//   // Generate new access token
+//   const tokenPayload = {
+//     userId: user._id.toString(),
+//     mobile: user.mobile,
+//     role: user.role,
+//   };
   
-  const accessToken = generateAccessToken(tokenPayload);
+//   const accessToken = generateAccessToken(tokenPayload);
   
-  res.status(200).json({
-    success: true,
-    message: 'Token refreshed successfully',
-    data: { accessToken },
-  });
-});
+//   res.status(200).json({
+//     success: true,
+//     message: 'Token refreshed successfully',
+//     data: { accessToken },
+//   });
+// });
 
 export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   const user = await User.findById(req.user?.userId).select('-__v');

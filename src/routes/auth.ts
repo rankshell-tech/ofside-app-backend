@@ -3,7 +3,6 @@ import {
   signup,
   login,
   verifyOTP,
-  refreshToken,
   getProfile,
   updateProfile,
 } from '../controllers/authController';
@@ -94,28 +93,28 @@ router.post('/login', authLimiter, otpLimiter, login);
  */
 router.post('/verify-otp', authLimiter, verifyOTP);
 
-/**
- * @swagger
- * /api/auth/refresh-token:
- *   post:
- *     summary: Refresh access token
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *     responses:
- *       200:
- *         description: Token refreshed successfully
- *       400:
- *         description: Invalid refresh token
- */
-router.post('/refresh-token', refreshToken);
+// /**
+//  * @swagger
+//  * /api/auth/refresh-token:
+//  *   post:
+//  *     summary: Refresh access token
+//  *     tags: [Authentication]
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             properties:
+//  *               refreshToken:
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Token refreshed successfully
+//  *       400:
+//  *         description: Invalid refresh token
+//  */
+// router.post('/refresh-token', refreshToken);
 
 /**
  * @swagger

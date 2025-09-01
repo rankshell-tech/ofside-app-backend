@@ -2,8 +2,8 @@ import rateLimit from 'express-rate-limit';
 import { config } from '../config/env';
 
 export const generalLimiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
+  windowMs: config.rateLimit.windowMs ?? 15 * 60 * 1000, // default to 15 minutes
+  max: config.rateLimit.maxRequests ?? 100, // default to 100 requests
   message: {
     success: false,
     message: 'Too many requests, please try again later.',

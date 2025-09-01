@@ -87,9 +87,9 @@ export interface ICourt {
 
 export interface IBooking {
   _id?: string;
-  user: string; // User ID
-  court: string; // Court ID
-  venue: string; // Venue ID
+  user: string | Types.ObjectId; // User ID or Mongoose ObjectId
+  court: string | Types.ObjectId; // Court ID or Mongoose ObjectId
+  venue: string | Types.ObjectId; // Venue ID or Mongoose ObjectId
   date: Date;
   startTime: string; // HH:mm format
   endTime: string; // HH:mm format
@@ -111,8 +111,8 @@ export interface IRulebook {
 
 export interface IMatch {
   _id?: string;
-  court: string; // Court ID
-  venue: string; // Venue ID
+  court: string | Types.ObjectId; // Court ID or Mongoose ObjectId
+  venue: string | Types.ObjectId; // Venue ID or Mongoose ObjectId
   sportType: string;
   date: Date;
   startTime: string;
@@ -126,8 +126,8 @@ export interface IMatch {
 
 export interface IPlayerStats {
   _id?: string;
-  player: string; // User ID
-  match: string; // Match ID
+  player: string | Types.ObjectId; // User ID or Mongoose ObjectId
+  match: string | Types.ObjectId; // Match ID or Mongoose ObjectId
   sportType: string;
   stats: {
     wins?: number;

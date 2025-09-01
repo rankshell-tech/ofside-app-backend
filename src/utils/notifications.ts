@@ -46,6 +46,9 @@ export const sendSMSOTP = async (mobile: string, otp: string): Promise<void> => 
   
   const message = `Your OTP for Ofside is: ${otp}. Valid for ${config.otp.expiryMinutes} minutes. Do not share this with anyone.`;
   
+  if (!config.twilio.phoneNumber) {
+    throw new Error('Twilio phone number not configured.');
+  }
   await twilioClient.messages.create({
     body: message,
     from: config.twilio.phoneNumber,
@@ -95,6 +98,10 @@ export const sendBookingConfirmation = async (
     }
     
     const message = `Booking confirmed! ${venueName} - ${courtName} on ${date} at ${time}. Amount: ₹${amount}. Arrive 10 mins early.`;
+
+    if (!config.twilio.phoneNumber) {
+      throw new Error('Twilio phone number not configured.');
+    }
     
     await twilioClient.messages.create({
       body: message,

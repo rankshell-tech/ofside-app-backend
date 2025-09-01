@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IPlayerStats } from '../types';
 
-export interface IPlayerStatsDocument extends IPlayerStats, Document {}
+export interface IPlayerStatsDocument extends Omit<IPlayerStats, '_id'>,  Document {}
 
 const playerStatsSchema = new Schema<IPlayerStatsDocument>({
   player: {

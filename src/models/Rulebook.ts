@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IRulebook } from '../types';
 
-export interface IRulebookDocument extends IRulebook, Document {}
+export interface IRulebookDocument extends Omit<IRulebook, '_id'>, Document {}
 
 const rulebookSchema = new Schema<IRulebookDocument>({
   sportType: {

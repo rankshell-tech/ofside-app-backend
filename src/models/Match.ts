@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IMatch } from '../types';
 
-export interface IMatchDocument extends IMatch, Document {}
+export interface IMatchDocument extends Omit<IMatch, '_id'>, Document {}
 
 const matchSchema = new Schema<IMatchDocument>({
   court: {

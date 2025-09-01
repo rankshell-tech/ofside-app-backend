@@ -15,7 +15,8 @@ export const generateOTP = (length: number = 4): string => {
 
 export const generateOTPExpiry = (): Date => {
   const now = new Date();
-  return new Date(now.getTime() + config.otp.expiryMinutes * 60 * 1000);
+  const expiryMinutes = config.otp.expiryMinutes ?? 5; // default to 5 minutes if undefined
+  return new Date(now.getTime() + expiryMinutes * 60 * 1000);
 };
 
 export const isValidOTP = (otp: string): boolean => {
