@@ -8,7 +8,7 @@ declare module 'express-serve-static-core' {
 }
 import { signupSchema, loginSchema, verifyOTPSchema } from '../utils/validators';
 import { generateOTP, generateOTPExpiry } from '../utils/otp';
-import { generateTokens, verifyRefreshToken, generateAccessToken } from '../utils/jwt';
+import { generateTokens } from '../utils/jwt';
 import { sendEmailOTP, sendSMSOTP } from '../utils/notifications';
 import { asyncHandler, createError } from '../middlewares/errorHandler';
 import { AuthRequest } from '../middlewares/auth';

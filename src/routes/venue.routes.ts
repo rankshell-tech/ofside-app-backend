@@ -7,7 +7,7 @@ import {
   deleteVenue,
   approveVenue,
   getOwnerVenues,
-} from '../controllers/venueController';
+} from '../controllers/venue.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 
 const router = Router();

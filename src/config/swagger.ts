@@ -165,6 +165,7 @@ const options = {
             message: { type: 'string' },
           },
         },
+
       },
     },
     tags: [
@@ -175,6 +176,7 @@ const options = {
       { name: 'Rulebook', description: 'Sports rules management' },
       { name: 'Analysis', description: 'Player analytics and match management' },
       { name: 'Upload', description: 'File upload endpoints' },
+      { name: 'Matches', description: 'Match management endpoints' },
     ],
   },
   apis: ['./src/routes/*.ts'],

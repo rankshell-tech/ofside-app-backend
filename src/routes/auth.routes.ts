@@ -5,10 +5,10 @@ import {
   verifyOTP,
   getProfile,
   updateProfile,
-} from '../controllers/authController';
+} from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth';
 import { authLimiter, otpLimiter } from '../middlewares/rateLimiter';
-import { resendOTP } from '../controllers/authController';
+import { resendOTP } from '../controllers/auth.controller';
 
 const router = Router();
 
