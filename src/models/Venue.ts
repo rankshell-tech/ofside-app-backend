@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 import { IVenue } from '../types';
 
 export interface IVenueDocument extends Omit<IVenue, '_id'>, Document {}

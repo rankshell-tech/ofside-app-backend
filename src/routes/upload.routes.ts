@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Request, Response } from 'express';
+import {  Response } from 'express';
 import { generatePresignedUploadUrl, generateFileKey } from '../utils/s3';
 import { asyncHandler, createError } from '../middlewares/errorHandler';
 import { AuthRequest, authenticate } from '../middlewares/auth';

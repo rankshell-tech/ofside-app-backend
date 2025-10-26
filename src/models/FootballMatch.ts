@@ -1,6 +1,6 @@
 // models/FootballMatch.ts
-import mongoose, { Schema, Document, Types } from "mongoose";
-import { BaseMatchSchema, IBaseMatch, TeamRefSchema } from "./BaseMatch";
+import mongoose, { Schema, Types } from "mongoose";
+import { BaseMatchSchema, IBaseMatch } from "./BaseMatch";
 
 export interface IGoalEvent {
   minute: number;

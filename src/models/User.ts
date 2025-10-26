@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
 import { IUser } from '../types';
 
 export interface IUserDocument extends Omit<IUser, '_id'>, Document {

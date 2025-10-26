@@ -1,8 +1,7 @@
 import { 
   PutObjectCommand, 
   GetObjectCommand, 
-  DeleteObjectCommand,
-  S3Client 
+  DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, S3_BUCKET } from '../config/aws';

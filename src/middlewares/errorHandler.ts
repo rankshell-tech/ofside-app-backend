@@ -15,7 +15,7 @@ export const createError = (message: string, statusCode: number = 500): AppError
 
 export const errorHandler = (
   err: AppError | ZodError | any,
-  req: Request,
+  _req: Request,
   res: Response
 ) => {
   let error = { ...err };

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { Request, Response } from 'express';
+import {  Response } from 'express';
 import { matchSchema, playerStatsSchema } from '../utils/validators';
 import { asyncHandler, createError } from '../middlewares/errorHandler';
-import { AuthRequest, authenticate, authorize } from '../middlewares/auth';
+import { AuthRequest, authenticate } from '../middlewares/auth';
 import Match from '../models/Match';
 import PlayerStats from '../models/PlayerStats';
 import Court from '../models/Court';
