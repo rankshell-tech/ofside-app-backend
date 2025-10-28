@@ -2,39 +2,68 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { BaseMatchSchema } from "./BaseMatch";
 
-export interface IVolleyballSet {
-  setNumber: number;
-  team1Score: number;
-  team2Score: number;
+export type VolleyballEventType = 'Smash' | 'Drop' | 'Net' | 'Out' | 'ServiceFault' | 'BodyTouch';
+
+export interface IRallyEvent {
+  playerId: Types.ObjectId;
+  eventType: VolleyballEventType;
+  pointTo?: number; // which team gets the point (1 or 2)
+  time?: string;
+}
+
+export interface IGame {
+  gameNumber: number;
+  team1Points: number;
+  team2Points: number;
   winnerTeamId?: Types.ObjectId | null;
+  rallyLog?: IRallyEvent[];
 }
 
 export interface IVolleyballMatch extends Document {
-  sets: IVolleyballSet[];      // array of sets (usually best of 5)
-  currentSet: number;
-  matchBestOf: number;         // 3 or 5
-  totalSetsWon: { team1: number; team2: number };
-  servingTeamId?: Types.ObjectId; // which team currently serving
-  rotations?: any;            // optional rotation state if you implement it
-  rules?: { maxPointsPerSet?: number; finalSetTo?: number; allowSubstitutions?: boolean } & Record<string, any>;
+  games: IGame[];
+  currentGame: number;
+  toss?: {
+    tossWinnerTeamId: Types.ObjectId; 
+    serveFirstTeamId: Types.ObjectId;
+    sideOfServe: 'left' | 'right';
+  }
+  rules?: {
+    matchType?: string; // "friendly" | "friendly cup" | "Exhibition" | "practice"
+    numberOfSets?: number;  // 3
+    pointerPerSet?: number;  // 21
+    playerSubstitutionsAllowed?: boolean;
+    liberoPlayerAllowed?: boolean;
+    cardsEnforced?: boolean;
+    empulsion?: boolean;
+    disqualifications?: boolean;
+  } & Record<string, any>;
 }
 
-const VolleyballSetSchema = new Schema<IVolleyballSet>({
-  setNumber: { type: Number, required: true },
-  team1Score: { type: Number, default: 0 },
-  team2Score: { type: Number, default: 0 },
-  winnerTeamId: { type: Schema.Types.ObjectId, default: null }
+const RallyEventSchema = new Schema<IRallyEvent>({
+  playerId: { type: Schema.Types.ObjectId, required: true },
+  eventType: { 
+    type: String, 
+    enum: ['Smash', 'Drop', 'Net', 'Out', 'ServiceFault', 'BodyTouch'], 
+    required: true 
+  },
+  pointTo: { type: Number },
+  time: { type: String }
+}, { _id: false });
+
+const GameSchema = new Schema<IGame>({
+  gameNumber: { type: Number, required: true },
+  team1Points: { type: Number, default: 0 },
+  team2Points: { type: Number, default: 0 },
+  winnerTeamId: { type: Schema.Types.ObjectId, default: null },
+  rallyLog: { type: [RallyEventSchema], default: [] }
 }, { _id: false });
 
 const VolleyballMatchSchema = new Schema<IVolleyballMatch>({
   ...BaseMatchSchema.obj,
-  sets: { type: [VolleyballSetSchema], default: [] },
-  currentSet: { type: Number, default: 1 },
-  matchBestOf: { type: Number, default: 5 },
-  totalSetsWon: { team1: { type: Number, default: 0 }, team2: { type: Number, default: 0 } },
-  servingTeamId: { type: Schema.Types.ObjectId, default: null },
-  rotations: { type: Schema.Types.Mixed, default: {} },
-  rules: { type: Schema.Types.Mixed, default: {} }
+
+  games: { type: [GameSchema], default: [] },
+  currentGame: { type: Number, default: 1 },
+  rules: { type: Schema.Types.Mixed, default: { pointsToWin: 21, numberOfSets: 3, pointerPerSet: 21, playerSubstitutionsAllowed: true, liberoPlayerAllowed: true, cardsEnforced: true, empulsion: true, disqualifications: true } }
 }, { timestamps: true });
 
 export default mongoose.models.VolleyballMatch || mongoose.model("VolleyballMatch", VolleyballMatchSchema);

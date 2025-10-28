@@ -2,56 +2,120 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { BaseMatchSchema } from "./BaseMatch";
 
-export interface IGamePoint {
-  pointNumber: number;
-  winnerTeamId: Types.ObjectId;
-  serverTeamId?: Types.ObjectId;
-  description?: string;
+export type TennisEventType =
+  | "Smash"
+  | "Ace"
+  | "Drop"
+  | "Net"
+  | "Out"
+  | "ServiceFault"
+  | "BodyTouch";
+
+export interface IRallyEvent {
+  playerId: Types.ObjectId;
+  eventType: TennisEventType;
+  pointTo?: number; // which team gets the point (1 or 2)
   time?: string;
 }
 
-export interface ISet {
-  setNumber: number;
-  team1Games: number;
-  team2Games: number;
-  tieBreak?: { team1: number; team2: number } | null;
+export interface IGame {
+  gameNumber: number;
+  team1Points: number;
+  team2Points: number;
   winnerTeamId?: Types.ObjectId | null;
-  gamePoints?: IGamePoint[]; // optional detailed point log
+  rallyLog?: IRallyEvent[];
 }
 
 export interface ITennisMatch extends Document {
-  bestOfSets: number; // best of 3 or 5
-  sets: ISet[];
-  currentSet: number;
+  games: IGame[];
+  currentGame: number;
+  toss?: {
+    tossWinnerTeamId: Types.ObjectId;
+    serveFirstTeamId: Types.ObjectId;
+    sideOfServe: "left" | "right";
+  };
   rules?: {
-    tiebreakAt?: number; // games count at which tiebreak applies (6)
-    finalSetTiebreak?: boolean;
+    matchType?: string; // "friendly" | "friendly cup" | "Exhibition" | "practice"
+    surfaceType?: string; // "Synthetic" | "clay" | "grass" | "hard"
+    numberOfSets?: number; // 3
+    numberOfMatchesToDecideWinner?: number; // 1 or 2
+    advantageRule?: boolean;
+    finalSetTieBreak?: boolean;
+    matchTieBreak?: boolean;
+    superTieBreakPoints?: number; // 7 or 10
   } & Record<string, any>;
 }
 
-const GamePointSchema = new Schema<IGamePoint>({
-  pointNumber: { type: Number },
-  winnerTeamId: { type: Schema.Types.ObjectId, required: true },
-  serverTeamId: { type: Schema.Types.ObjectId },
-  description: { type: String },
-  time: { type: String }
-}, { _id: false });
+// --------------------- SCHEMAS --------------------- //
 
-const SetSchema = new Schema<ISet>({
-  setNumber: { type: Number, required: true },
-  team1Games: { type: Number, default: 0 },
-  team2Games: { type: Number, default: 0 },
-  tieBreak: { type: { team1: Number, team2: Number }, default: null },
-  winnerTeamId: { type: Schema.Types.ObjectId, default: null },
-  gamePoints: { type: [GamePointSchema], default: [] }
-}, { _id: false });
+const RallyEventSchema = new Schema<IRallyEvent>(
+  {
+    playerId: { type: Schema.Types.ObjectId, required: true },
+    eventType: {
+      type: String,
+      enum: ["Smash", "Ace", "Drop", "Net", "Out", "ServiceFault", "BodyTouch"],
+      required: true,
+    },
+    pointTo: { type: Number },
+    time: { type: String },
+  },
+  { _id: false }
+);
 
-const TennisMatchSchema = new Schema<ITennisMatch>({
-  ...BaseMatchSchema.obj,
-  bestOfSets: { type: Number, default: 3 },
-  sets: { type: [SetSchema], default: [] },
-  currentSet: { type: Number, default: 1 },
-  rules: { type: Schema.Types.Mixed, default: { tiebreakAt: 6, finalSetTiebreak: true } }
-}, { timestamps: true });
+const GameSchema = new Schema<IGame>(
+  {
+    gameNumber: { type: Number, required: true },
+    team1Points: { type: Number, default: 0 },
+    team2Points: { type: Number, default: 0 },
+    winnerTeamId: { type: Schema.Types.ObjectId, default: null },
+    rallyLog: { type: [RallyEventSchema], default: [] },
+  },
+  { _id: false }
+);
 
-export default mongoose.models.TennisMatch || mongoose.model("TennisMatch", TennisMatchSchema);
+const TossSchema = new Schema(
+  {
+    tossWinnerTeamId: { type: Schema.Types.ObjectId, required: true },
+    serveFirstTeamId: { type: Schema.Types.ObjectId, required: true },
+    sideOfServe: { type: String, enum: ["left", "right"], required: true },
+  },
+  { _id: false }
+);
+
+const RulesSchema = new Schema(
+  {
+    matchType: {
+      type: String,
+      enum: ["friendly", "friendly cup", "exhibition", "practice"],
+    },
+    surfaceType: {
+      type: String,
+      enum: ["synthetic", "clay", "grass", "hard"],
+    },
+    numberOfSets: { type: Number, default: 3 },
+    numberOfMatchesToDecideWinner: { type: Number, default: 1 },
+    advantageRule: { type: Boolean, default: true },
+    finalSetTieBreak: { type: Boolean, default: true },
+    matchTieBreak: { type: Boolean, default: true },
+    superTieBreakPoints: { type: Number, default: 10 },
+  },
+  { _id: false }
+);
+
+// --------------------- MAIN SCHEMA --------------------- //
+
+const TennisMatchSchema = new Schema<ITennisMatch>(
+  {
+    ...BaseMatchSchema.obj,
+
+    games: { type: [GameSchema], default: [] },
+    currentGame: { type: Number, default: 1 },
+    toss: { type: TossSchema, default: null },
+    rules: { type: RulesSchema, default: () => ({}) },
+  },
+  { timestamps: true }
+);
+
+export default
+  mongoose.models.TennisMatch ||
+  mongoose.model<ITennisMatch>("TennisMatch", TennisMatchSchema);

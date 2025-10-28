@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * @swagger
- * /matches:
+ * /api/matches:
  *   post:
  *     summary: Create a new match
  *     tags: [Matches]
@@ -26,7 +26,7 @@ router.post("/", createMatch);
 
 /**
  * @swagger
- * /matches/{sport}/{id}:
+ * /api/matches/{sport}/{id}:
  *   get:
  *     summary: Get a match by sport and ID
  *     tags: [Matches]

@@ -2,37 +2,63 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { BaseMatchSchema } from "./BaseMatch";
 
-export interface IPickleballGame {
+export type PickleballEventType = 'Smash' | 'Drop' | 'Net' | 'Out' | 'ServiceFault' | 'BodyTouch';
+
+export interface IRallyEvent {
+  playerId: Types.ObjectId;
+  eventType: PickleballEventType;
+  pointTo?: number; // which team gets the point (1 or 2)
+  time?: string;
+}
+
+export interface IGame {
   gameNumber: number;
   team1Points: number;
   team2Points: number;
   winnerTeamId?: Types.ObjectId | null;
+  rallyLog?: IRallyEvent[];
 }
 
 export interface IPickleballMatch extends Document {
-  bestOf: number;                // usually 3
-  games: IPickleballGame[];
+  games: IGame[];
   currentGame: number;
+  toss?: {
+    tossWinnerTeamId: Types.ObjectId; 
+    serveFirstTeamId: Types.ObjectId;
+    sideOfServe: 'left' | 'right';
+  }
   rules?: {
-    pointsToWin?: number;        // commonly 11 (win by 2)
-    winBy?: number;
-    capAt?: number;
+    matchType?: string; // "friendly" | "friendly cup" | "Exhibition" | "practice"
+    numberOfSets?: number;  // 3
+    pointerPerSet?: number;  // 21
   } & Record<string, any>;
 }
 
-const PickleballGameSchema = new Schema<IPickleballGame>({
+const RallyEventSchema = new Schema<IRallyEvent>({
+  playerId: { type: Schema.Types.ObjectId, required: true },
+  eventType: { 
+    type: String, 
+    enum: ['Smash', 'Drop', 'Net', 'Out', 'ServiceFault', 'BodyTouch'], 
+    required: true 
+  },
+  pointTo: { type: Number },
+  time: { type: String }
+}, { _id: false });
+
+const GameSchema = new Schema<IGame>({
   gameNumber: { type: Number, required: true },
   team1Points: { type: Number, default: 0 },
   team2Points: { type: Number, default: 0 },
-  winnerTeamId: { type: Schema.Types.ObjectId, default: null }
+  winnerTeamId: { type: Schema.Types.ObjectId, default: null },
+  rallyLog: { type: [RallyEventSchema], default: [] }
 }, { _id: false });
 
 const PickleballMatchSchema = new Schema<IPickleballMatch>({
   ...BaseMatchSchema.obj,
-  bestOf: { type: Number, default: 3 },
-  games: { type: [PickleballGameSchema], default: [] },
+
+  games: { type: [GameSchema], default: [] },
   currentGame: { type: Number, default: 1 },
-  rules: { type: Schema.Types.Mixed, default: { pointsToWin: 11, winBy: 2 } }
+  rules: { type: Schema.Types.Mixed, default: { pointsToWin: 21, numberOfSets: 3, pointerPerSet: 21 } }
 }, { timestamps: true });
 
 export default mongoose.models.PickleballMatch || mongoose.model("PickleballMatch", PickleballMatchSchema);
