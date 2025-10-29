@@ -6,7 +6,7 @@ import {
   updateCourt,
   deleteCourt,
   getAvailableSlots,
-} from '../controllers/courtController';
+} from '../controllers/court.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 
 const router = Router();

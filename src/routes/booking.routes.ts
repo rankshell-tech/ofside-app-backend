@@ -5,7 +5,7 @@ import {
   getBookingById,
   cancelBooking,
   getVenueBookings,
-} from '../controllers/bookingController';
+} from '../controllers/booking.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 
 const router = Router();

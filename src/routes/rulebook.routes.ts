@@ -129,7 +129,7 @@ const createOrUpdateRules = asyncHandler(async (req: AuthRequest, res: Response)
  *       200:
  *         description: All rulebooks retrieved successfully
  */
-const getAllRulebooks = asyncHandler(async (req: Request, res: Response) => {
+const getAllRulebooks = asyncHandler(async (_req: Request, res: Response) => {
   // Each rulebook.rules is now a string field
   const rulebooks = await Rulebook.find().sort({ sportType: 1 });
 

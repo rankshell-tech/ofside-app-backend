@@ -1,4 +1,7 @@
 import app from './app';
+import http from "http";
+import { Server } from "socket.io";
+import registerMatchSocket from "./sockets/match.socket";
 import { config } from './config/env';
 import { connectDatabase } from './config/database';
 
@@ -21,8 +24,12 @@ const startServer = async (): Promise<void> => {
 ╚══════════════════════════════════════════════════════════════════╝
       `);
     });
-    
-    // Graceful shutdown
+
+const socketServer = http.createServer(app);
+const io = new Server(socketServer, { cors: { origin: "*" } });
+
+registerMatchSocket(io);
+
     const gracefulShutdown = (signal: string) => {
       console.log(`\n🔄 Received ${signal}. Starting graceful shutdown...`);
       
