@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { getMatchModel } from "../utils/matchModelResolver";
-
+import { generateCommentary } from "../services/aiCommentaryService";
 /**
  * Register all match-related websocket logic
  * Handles real-time updates for multiple sports
@@ -47,11 +47,23 @@ export default function registerMatchSocket(io: Server) {
 
         await match.save();
 
+
+        
+        // 🧠 Generate AI Commentary
+        const commentary = await generateCommentary({
+          sport,
+          event: { type, payload },
+          match,
+        });
+
         io.to(matchId).emit("match_updated", {
           type,
           sport,
           match,
+          commentary
         });
+
+        
       } catch (err) {
         console.error(`❌ [${sport}] match_event error:`, err);
       }
