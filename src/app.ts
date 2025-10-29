@@ -73,7 +73,7 @@ app.use('/api/upload', uploadRoutes);
 app.get('/', (_, res) => {
   res.status(200).json({
     success: true,
-    message: 'Welcome to Ofside Management API',
+    message: 'Welcome to Ofside Management API...',
     documentation: '/api-docs',
     version: '1.0.0',
   });
