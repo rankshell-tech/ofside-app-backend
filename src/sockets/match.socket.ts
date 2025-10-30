@@ -69,7 +69,19 @@ export default function registerMatchSocket(io: Server) {
       case "basketball":
         handleBasketballEvent(match, type, payload);
         break;
-      // etc.
+      case "badminton":
+        handleBadmintonEvent(match, type, payload);
+        break;
+      case "tennis":
+        handleTennisEvent(match, type, payload);
+        break;
+      case "volleyball":
+        handleVolleyballEvent(match, type, payload);
+        break;
+      case "pickleball":
+        handlePickleballEvent(match, type, payload);
+        break;
+        
     }
 
     await match.save();
