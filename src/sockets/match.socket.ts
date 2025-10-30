@@ -1,11 +1,35 @@
 import { Server, Socket } from "socket.io";
 import { getMatchModel } from "../utils/matchModelResolver";
 import { generateCommentary } from "../services/aiCommentaryService";
+import jwt from "jsonwebtoken";
+
 /**
  * Register all match-related websocket logic
  * Handles real-time updates for multiple sports
  */
 export default function registerMatchSocket(io: Server) {
+
+
+   // 🔒 AUTHENTICATION MIDDLEWARE
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token; // token sent from frontend
+
+    if (!token) {
+      return next(new Error("No token provided"));
+    }
+
+    try {
+      const user = jwt.verify(token, process.env.JWT_SECRET as string);
+      socket.data.user = user; // Attach user info to socket
+      next(); // Allow connection
+    } catch (err) {
+      console.error("JWT verification failed:", err);
+      next(new Error("Invalid token"));
+    }
+  });
+
+
+
   io.on("connection", (socket: Socket) => {
     console.log(`🟢 ${socket.id} connected`);
 
@@ -16,58 +40,58 @@ export default function registerMatchSocket(io: Server) {
     });
 
     /* --------------------------- GENERIC EVENT UPDATE --------------------------- */
-    socket.on("match_event", async ({ matchId, sport, type, payload }) => {
-      try {
-        const Model = getMatchModel(sport);
-        const match = await Model.findById(matchId);
-        if (!match) return;
+ socket.on("match_event", async ({ matchId, sport, type, payload }) => {
+  try {
+    const user = socket.data.user;
 
-        switch (sport) {
-          case "basketball":
-            handleBasketballEvent(match, type, payload);
-            break;
-          case "football":
-            handleFootballEvent(match, type, payload);
-            break;
-          case "badminton":
-            handleBadmintonEvent(match, type, payload);
-            break;
-          case "tennis":
-            handleTennisEvent(match, type, payload);
-            break;
-          case "volleyball":
-            handleVolleyballEvent(match, type, payload);
-            break;
-          case "pickleball":
-            handlePickleballEvent(match, type, payload);
-            break;
-          default:
-            console.warn(`⚠️ Unknown sport: ${sport}`);
-        }
+    if (!user) {
+      return socket.emit("error", "Unauthorized: no user found");
+    }
 
-        await match.save();
+    const Model = getMatchModel(sport);
+    const match = await Model.findById(matchId);
+    if (!match) return;
 
+    // ✅ Check if user is allowed to update this match
+    const isAuthorized = match.scoringUpdatedBy.some(
+      (id: any) => id.toString() === user._id
+    );
 
-        
-        // 🧠 Generate AI Commentary
-        const commentary = await generateCommentary({
-          sport,
-          event: { type, payload },
-          match,
-        });
+    if (!isAuthorized) {
+      return socket.emit("error", "You are not allowed to update this match");
+    }
 
-        io.to(matchId).emit("match_updated", {
-          type,
-          sport,
-          match,
-          commentary
-        });
+    // ⚡ Continue updating the match
+    switch (sport) {
+      case "football":
+        handleFootballEvent(match, type, payload);
+        break;
+      case "basketball":
+        handleBasketballEvent(match, type, payload);
+        break;
+      // etc.
+    }
 
-        
-      } catch (err) {
-        console.error(`❌ [${sport}] match_event error:`, err);
-      }
+    await match.save();
+
+    const commentary = await generateCommentary({
+      sport,
+      event: { type, payload },
+      match,
     });
+
+    io.to(matchId).emit("match_updated", {
+      type,
+      sport,
+      match,
+      commentary,
+    });
+
+  } catch (err) {
+    console.error("match_event error:", err);
+  }
+});
+
 
     /* ------------------------------- DISCONNECT ------------------------------- */
     socket.on("disconnect", () => {
@@ -201,3 +225,6 @@ function handlePickleballEvent(match: any, type: string, payload: any) {
   if (pointTo === 1) currentGame.team1Points += 1;
   else if (pointTo === 2) currentGame.team2Points += 1;
 }
+
+
+// https://chatgpt.com/share/6903666e-eb84-8004-8fce-5f8dcfc34841
