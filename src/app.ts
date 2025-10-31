@@ -9,6 +9,7 @@ import { errorHandler, notFound } from './middlewares/errorHandler';
 import { generalLimiter } from './middlewares/rateLimiter';
 
 // Import routes
+import userMatchesRoutes from './routes/userMatches.routes';
 import authRoutes from './routes/auth.routes';
 import venueRoutes from './routes/venue.routes';
 import courtRoutes from './routes/court.routes';
@@ -17,6 +18,9 @@ import rulebookRoutes from './routes/rulebook.routes';
 import analysisRoutes from './routes/analysis.routes';
 import uploadRoutes from './routes/upload.routes';
 import matchRoutes from './routes/match.routes';
+import leaderboardRoutes from './routes/leaderboard.routes';
+
+
 
 
 
@@ -70,6 +74,8 @@ app.use('/api/rulebook', rulebookRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/matches', matchRoutes);
+app.use('/api/leaderboards', leaderboardRoutes);
+app.use('/api/userMatches', userMatchesRoutes);
 
 // Welcome endpoint
 app.get('/', (_, res) => {
