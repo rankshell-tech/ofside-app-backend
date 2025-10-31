@@ -6,13 +6,15 @@ import {
   updateUser,
   deleteUser,
   searchUsers,
+  getAllVenuePartners,
 } from "../controllers/user.controller";
 
 const router = express.Router();
 
 // Routes
 router.post("/", createUser);
-router.get("/", getAllUsers);
+router.get("/get-all-users", getAllUsers);
+router.get("/get-all-venue-partners", getAllVenuePartners);
 router.get("/search", searchUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);

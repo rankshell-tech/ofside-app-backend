@@ -52,7 +52,7 @@ export const createUser = async (req: Request, res: Response) => {
  */
 export const searchUsers = async (req: Request, res: Response) => {
   try {
-    const { q } = req.query;
+    const { q  } = req.query;
 
     if (!q || typeof q !== "string") {
       return res.status(400).json({ success: false, message: "Search query is required" });
@@ -60,8 +60,9 @@ export const searchUsers = async (req: Request, res: Response) => {
 
     const regex = new RegExp(q, "i"); // case-insensitive search
 
+
     const users = await User.find({
-      $or: [{ name: regex }, { mobile: regex }, { email: regex }],
+      $or: [{ name: regex }, { mobile: regex }, { email: regex }]
     })
       .limit(20)
       .lean();
@@ -93,6 +94,27 @@ export const getAllUsers = async (_req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in getAllUsers:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
+/**
+ * 📋 Get all venue partners
+ * Route: GET /api/users
+ */
+export const getAllVenuePartners = async (_req: Request, res: Response) => {
+  try {
+    const users = await User.find({ role: 1 }).lean();
+    return res.json({
+      success: true,
+      message: "All venue partners fetched successfully",
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    console.error("Error in getAllVenuePartners:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
