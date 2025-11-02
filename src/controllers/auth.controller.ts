@@ -155,7 +155,11 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   });
   
   if (!user) {
-    throw createError('User not found', 404);
+    return res.status(404).json({
+      success: false,
+      message: 'User not found',
+      data: null,
+    });
   }
   
   if (!user.isActive) {
