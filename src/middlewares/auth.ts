@@ -18,18 +18,24 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     }
 
     const token = authHeader.substring(7);
+   console.log("Token:", token);
+    
     const decoded = verifyAccessToken(token);
     
     req.user = decoded;
     next();
     return;
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid or expired token',
-    });
+  } catch (error: any) {
+     if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'token_expired' });
+    }
+    return res.status(401).json({ error: 'invalid_token' });
   }
 };
+
+
+
+
 
 export const authorize = (...roles: number[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {

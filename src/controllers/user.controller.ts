@@ -79,6 +79,9 @@ export const searchUsers = async (req: Request, res: Response) => {
   }
 };
 
+
+
+
 /**
  * 📋 Get all users
  * Route: GET /api/users

@@ -159,7 +159,7 @@ router.get('/profile', authenticate, getProfile);
  *       401:
  *         description: Unauthorized
  */
-router.put('/profile', authenticate, updateProfile);
+router.put('/update-profile', authenticate, updateProfile);
 
 /**
  * @swagger

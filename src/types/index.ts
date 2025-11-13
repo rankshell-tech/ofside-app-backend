@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 export interface IUser {
   _id?: string;
   name: string;
+  username?: string;
   mobile: string;
   email?: string;
   referralCode?: string;
@@ -13,6 +14,7 @@ export interface IUser {
   favSports?: string[];
   createdAt?: Date;
   updatedAt?: Date;
+  dateOfBirth?: Date;
 }
 
 export interface IVenue {

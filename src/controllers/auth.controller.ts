@@ -126,18 +126,12 @@ export const verifyOTP = asyncHandler(async (req: Request, res: Response) => {
 
   const tokens = generateTokens(tokenPayload);
 
+
   return res.status(200).json({
     success: true,
     message: type === 'signup' ? 'Account created successfully' : 'Login successful',
     data: {
-      user: {
-        id: user._id,
-        name: user.name,
-        mobile: user.mobile,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-      },
+      user,
       ...tokens,
     },
   });
@@ -238,7 +232,9 @@ export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) =
 });
 
 export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const allowedFields = ['name', 'email', 'profilePicture'];
+
+  console.log("Update Profile Req Body:", req.body);
+  const allowedFields = ['name','mobile', 'profilePicture','dateOfBirth', 'gender', 'favSports'];
   const updates = Object.keys(req.body)
     .filter(key => allowedFields.includes(key))
     .reduce((obj: any, key) => {
@@ -259,6 +255,7 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
   if (!user) {
     throw createError('User not found', 404);
   }
+  console.log("Updated User:", user);
   
   res.status(200).json({
     success: true,

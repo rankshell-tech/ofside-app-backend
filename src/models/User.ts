@@ -12,6 +12,13 @@ const userSchema = new Schema<IUserDocument>({
     trim: true,
     maxlength: [100, 'Name cannot exceed 100 characters'],
   },
+  username: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    maxlength: [50, 'Username cannot exceed 50 characters'],
+  },
   mobile: {
     type: String,
     required: [true, 'Mobile number is required'],
@@ -50,6 +57,9 @@ const userSchema = new Schema<IUserDocument>({
   favSports: {
     type: [String],
     default: [],
+  },
+  dateOfBirth: {
+    type: Date,
   },
 }, {
   timestamps: true,

@@ -8,99 +8,252 @@ import Court from '../models/Court';
 import Venue from '../models/Venue';
 import User from '../models/User';
 
+// export const createBooking = asyncHandler(async (req: AuthRequest, res: Response) => {
+//   const validatedData = bookingSchema.parse(req.body);
+  
+//   // Check if court exists
+//   const court = await Court.findById(validatedData.courtId).populate('venue');
+//   if (!court || !court.isActive) {
+//     throw createError('Court not found or inactive', 404);
+//   }
+  
+//   const venue = court.venue as any;
+  
+//   // Check for overlapping bookings
+//   const overlappingBooking = await Booking.findOne({
+//     court: validatedData.courtId,
+//     date: new Date(validatedData.date),
+//     status: 'confirmed',
+//     $or: [
+//       {
+//         startTime: { $lt: validatedData.endTime },
+//         endTime: { $gt: validatedData.startTime },
+//       },
+//     ],
+//   });
+  
+//   if (overlappingBooking) {
+//     throw createError('Court is already booked for this time slot', 400);
+//   }
+  
+//   // Calculate total price
+//   const startTime = validatedData.startTime;
+//   const endTime = validatedData.endTime;
+//   const bookingDate = new Date(validatedData.date);
+  
+//   let totalPrice = court.pricePerSlot;
+  
+//   // Check for peak hours
+//   if (court.peakEnabled) {
+//     const dayOfWeek = bookingDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+//     const isPeakDay = court.peakDays?.includes(dayOfWeek);
+//     const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+//     const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+//     const peakStartMinutes = court.peakStart ? parseInt(court.peakStart.split(':')[0]) * 60 + parseInt(court.peakStart.split(':')[1]) : 0;
+//     const peakEndMinutes = court.peakEnd ? parseInt(court.peakEnd.split(':')[0]) * 60 + parseInt(court.peakEnd.split(':')[1]) : 0;
+//     const isPeakTime = startMinutes >= peakStartMinutes && endMinutes <= peakEndMinutes;
+
+//     if (isPeakDay && isPeakTime) {
+//       totalPrice = court.peakPricePerSlot || court.pricePerSlot;
+//     }
+//   }
+
+//   // Calculate duration and multiply price
+//   const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+//   const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+//   const durationMinutes = endMinutes - startMinutes;
+//   const slots = Math.ceil(durationMinutes / (court.slotDuration || 60));
+  
+//   totalPrice *= slots;
+  
+//   // Create booking
+//   const booking = await Booking.create({
+//     user: req.user?.userId,
+//     court: validatedData.courtId,
+//     venue: venue._id,
+//     date: bookingDate,
+//     startTime,
+//     endTime,
+//     totalPrice,
+//   });
+  
+//   // Get user details for notification
+//   const user = await User.findById(req.user?.userId);
+//   // Send confirmation notification
+//   if (user) {
+//     const bookingDetails = {
+//       venueName: venue.venueName,
+//       courtName: court.name, // changed from court.courtName to court.name
+//       date: validatedData.date,
+//       time: `${startTime} - ${endTime}`,
+//       amount: totalPrice,
+//     };
+    
+//     if (user.email) {
+//       await sendBookingConfirmation(user.email, 'email', bookingDetails);
+//     }
+//     await sendBookingConfirmation(user.mobile, 'sms', bookingDetails);
+//   }
+  
+//   res.status(201).json({
+//     success: true,
+//     message: 'Booking created successfully',
+//     data: { booking },
+//   });
+// });
+
+
+
+import mongoose from 'mongoose'; // make sure this is imported at top
+// ... other imports (Court, Booking, User, asyncHandler, createError, sendBookingConfirmation)
+
 export const createBooking = asyncHandler(async (req: AuthRequest, res: Response) => {
   const validatedData = bookingSchema.parse(req.body);
-  
-  // Check if court exists
+
+  // helper to parse "HH:mm" to minutes since midnight
+  const timeToMinutes = (t: string) => {
+    const [hh = '0', mm = '0'] = (t || '').split(':');
+    const h = Number(hh);
+    const m = Number(mm);
+    if (Number.isNaN(h) || Number.isNaN(m)) return NaN;
+    return h * 60 + m;
+  };
+
+  // normalize booking date to midnight (date-only)
+  const bookingDate = new Date(validatedData.date);
+  bookingDate.setHours(0, 0, 0, 0);
+
+  // sanity checks
+  const startTime = validatedData.startTime;
+  const endTime = validatedData.endTime;
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+  if (Number.isNaN(startMinutes) || Number.isNaN(endMinutes)) {
+    throw createError('Invalid startTime or endTime format. Use HH:mm', 400);
+  }
+  if (endMinutes <= startMinutes) {
+    throw createError('endTime must be after startTime', 400);
+  }
+
+  // Check if court exists and is active
   const court = await Court.findById(validatedData.courtId).populate('venue');
   if (!court || !court.isActive) {
     throw createError('Court not found or inactive', 404);
   }
-  
   const venue = court.venue as any;
-  
-  // Check for overlapping bookings
-  const overlappingBooking = await Booking.findOne({
-    court: validatedData.courtId,
-    date: new Date(validatedData.date),
-    status: 'confirmed',
-    $or: [
-      {
-        startTime: { $lt: validatedData.endTime },
-        endTime: { $gt: validatedData.startTime },
-      },
-    ],
-  });
-  
-  if (overlappingBooking) {
-    throw createError('Court is already booked for this time slot', 400);
-  }
-  
-  // Calculate total price
-  const startTime = validatedData.startTime;
-  const endTime = validatedData.endTime;
-  const bookingDate = new Date(validatedData.date);
-  
-  let totalPrice = court.pricePerSlot;
-  
-  // Check for peak hours
-  if (court.peakEnabled) {
-    const dayOfWeek = bookingDate.getDay(); // 0 (Sunday) to 6 (Saturday)
-    const isPeakDay = court.peakDays?.includes(dayOfWeek);
-    const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
-    const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
-    const peakStartMinutes = court.peakStart ? parseInt(court.peakStart.split(':')[0]) * 60 + parseInt(court.peakStart.split(':')[1]) : 0;
-    const peakEndMinutes = court.peakEnd ? parseInt(court.peakEnd.split(':')[0]) * 60 + parseInt(court.peakEnd.split(':')[1]) : 0;
-    const isPeakTime = startMinutes >= peakStartMinutes && endMinutes <= peakEndMinutes;
 
-    if (isPeakDay && isPeakTime) {
-      totalPrice = court.peakPricePerSlot || court.pricePerSlot;
-    }
-  }
+  // Start a session to avoid race conditions (two requests booking same slot)
+  const session = await mongoose.startSession();
+  try {
+    let createdBooking: any = null;
 
-  // Calculate duration and multiply price
-  const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
-  const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
-  const durationMinutes = endMinutes - startMinutes;
-  const slots = Math.ceil(durationMinutes / (court.slotDuration || 60));
-  
-  totalPrice *= slots;
-  
-  // Create booking
-  const booking = await Booking.create({
-    user: req.user?.userId,
-    court: validatedData.courtId,
-    venue: venue._id,
-    date: bookingDate,
-    startTime,
-    endTime,
-    totalPrice,
-  });
-  
-  // Get user details for notification
-  const user = await User.findById(req.user?.userId);
-  // Send confirmation notification
-  if (user) {
-    const bookingDetails = {
-      venueName: venue.venueName,
-      courtName: court.name, // changed from court.courtName to court.name
-      date: validatedData.date,
-      time: `${startTime} - ${endTime}`,
-      amount: totalPrice,
-    };
-    
-    if (user.email) {
-      await sendBookingConfirmation(user.email, 'email', bookingDetails);
+    await session.withTransaction(async () => {
+      // Overlapping booking query:
+      // existing.start < newEnd && existing.end > newStart  => overlap
+      const overlappingBooking = await Booking.findOne({
+        court: validatedData.courtId,
+        date: bookingDate,
+        status: 'confirmed',
+        $expr: {
+          $and: [
+            { $lt: [{ $toInt: { $substr: ['$startTime', 0, 2] } }, 9999] }, // defensive (optional)
+          ],
+        },
+        // simple string compare won't work reliably; use minutes comparison check in JS.
+      }).session(session);
+
+      // Instead of trying to compare times in Mongo with strings, fetch possible bookings for that date and check overlap in JS:
+      const bookingsOnDate = await Booking.find({
+        court: validatedData.courtId,
+        date: bookingDate,
+        status: 'confirmed',
+      }).session(session);
+
+      const hasOverlap = bookingsOnDate.some((b) => {
+        // b.startTime & b.endTime are stored as "HH:mm" strings
+        const bStart = timeToMinutes(b.startTime);
+        const bEnd = timeToMinutes(b.endTime);
+        return bStart < endMinutes && bEnd > startMinutes; // overlap condition
+      });
+
+      if (hasOverlap) {
+        throw createError('Court is already booked for this time slot', 400);
+      }
+
+      // Calculate total price (base price per slot * slots)
+      let totalPrice = Number(court.pricePerSlot || 0);
+
+      // Calculate peak pricing: current logic applies peak price only if whole booking within peak window on a peak day
+      if (court.peakEnabled) {
+        const dayOfWeek = bookingDate.getDay(); // 0..6
+        const isPeakDay = Array.isArray(court.peakDays) ? court.peakDays.includes(dayOfWeek) : false;
+
+        const peakStartMinutes = court.peakStart ? timeToMinutes(court.peakStart) : 0;
+        const peakEndMinutes = court.peakEnd ? timeToMinutes(court.peakEnd) : 0;
+        const isPeakTime = startMinutes >= peakStartMinutes && endMinutes <= peakEndMinutes;
+
+        if (isPeakDay && isPeakTime) {
+          totalPrice = Number(court.peakPricePerSlot || court.pricePerSlot || 0);
+        }
+        // NOTE: If you want to charge peak/non-peak proportionally per-slot, you'd need to compute per-slot minutes and sum accordingly.
+      }
+
+      const slotDuration = Number(court.slotDuration || 60);
+      const durationMinutes = endMinutes - startMinutes;
+      const slots = Math.ceil(durationMinutes / (slotDuration || 60));
+      totalPrice = totalPrice * slots;
+
+      // Create booking (within transaction)
+      createdBooking = await Booking.create(
+        [{
+          user: req.user?.userId,
+          court: validatedData.courtId,
+          venue: venue._id,
+          date: bookingDate,
+          startTime,
+          endTime,
+          totalPrice,
+        }],
+        { session }
+      );
+
+      if (Array.isArray(createdBooking)) createdBooking = createdBooking[0];
+    });
+
+    // Transaction committed; createdBooking is available
+    // Populate booking for response (court and venue)
+    const populatedBooking = await Booking.findById(createdBooking._id)
+      .populate('court')
+      .populate('venue');
+
+    // Notifications (outside transaction)
+    const user = await User.findById(req.user?.userId);
+    if (user) {
+      const bookingDetails = {
+        venueName: venue.venueName,
+        courtName: court.name || '',
+        date: validatedData.date,
+        time: `${startTime} - ${endTime}`,
+     
+      };
+
+      // if (user.email) {
+      //   // don't await both sequentially if not needed; but it's fine
+      //   await sendBookingConfirmation(user.email, 'email', bookingDetails);
+      // }
+      // await sendBookingConfirmation(user.mobile, 'sms', bookingDetails);
     }
-    await sendBookingConfirmation(user.mobile, 'sms', bookingDetails);
+
+    res.status(201).json({
+      success: true,
+      message: 'Booking created successfully',
+      data: { booking: populatedBooking },
+    });
+  } finally {
+    session.endSession();
   }
-  
-  res.status(201).json({
-    success: true,
-    message: 'Booking created successfully',
-    data: { booking },
-  });
 });
+
 
 export const getUserBookings = asyncHandler(async (req: AuthRequest, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
