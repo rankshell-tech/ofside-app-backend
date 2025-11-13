@@ -46,6 +46,52 @@ export const createUser = async (req: Request, res: Response) => {
     }
 };
 
+
+
+export const createUserQuick = async (req: Request, res: Response) => {
+    try {
+        const { name, mobile, email } = req.body;
+        // console.log(req.body);
+
+        // Require only mobile (others are optional)
+        if (!mobile) {
+            return res.status(400).json({ success: false, message: "Mobile number is required" });
+        }
+
+        // Check if user already exists
+         // Check if there is already a user with this mobile or email
+    const existingUser = await User.findOne({
+      $or: [
+        { mobile: mobile },
+        ...(email ? [{ email: email }] : []),
+      ],
+    }).lean();
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists with this mobile number. Please search for " + existingUser.name,
+                existingUser: { id: existingUser._id, name: existingUser.name, mobile: existingUser.mobile },
+            });
+        }
+
+        // Build user payload only with provided fields
+        const userData: Record<string, any> = { mobile };
+        if (name) userData.name = name;
+        if (email) userData.email = email;
+    
+        const user = await User.create(userData);
+
+        return res.status(201).json({
+            success: true,
+            message: "User created successfully",
+            user,
+        });
+    } catch (error) {
+        console.error("Error in createUser:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
 /**
  * 🔍 Search users (for player search)
  * Route: GET /api/users/search?q=ash

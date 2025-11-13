@@ -7,12 +7,14 @@ import {
   deleteUser,
   searchUsers,
   getAllVenuePartners,
+  createUserQuick,
 } from "../controllers/user.controller";
 
 const router = express.Router();
 
 // Routes
 router.post("/", createUser);
+router.post("/quick", createUserQuick);
 router.get("/get-all-users", getAllUsers);
 router.get("/get-all-venue-partners", getAllVenuePartners);
 router.get("/search", searchUsers);
