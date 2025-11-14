@@ -4,7 +4,6 @@ import { IUserDocument } from "./User";
 
 export interface ITeam extends Document {
   name: string;
-  shortName?: string;
   logoUrl?: string;
   players: Types.ObjectId[] | IUserDocument[];
   sport: string; // football, badminton, basketball, etc.
@@ -17,7 +16,6 @@ export interface ITeam extends Document {
 export const TeamSchema = new Schema<ITeam>(
   {
     name: { type: String, required: true, trim: true },
-    shortName: { type: String },
     logoUrl: { type: String },
     sport: { type: String, required: true, enum: ["football", "badminton", "basketball", "tennis", "volleyball", "pickleball"] },
     players: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
