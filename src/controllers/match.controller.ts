@@ -4,10 +4,17 @@ import { getMatchModel } from "../utils/matchModelResolver";
 
 export const createMatch = async (req: Request, res: Response) => {
   try {
+    console.log("Request Body:", req.body); // Debugging line
     const { sport, ...data } = req.body;
     const Model = getMatchModel(sport);
     const match = await Model.create({ sport, ...data });
-    res.status(201).json(match);
+
+    console.log("Created Match:", match); // Debugging line
+    res.status(201).json({
+      success:true,
+      data: match,
+      message: "Match created successfully"
+    });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }

@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 // ---------------- CREATE TEAM ----------------
 export const createTeam = async (req: Request, res: Response) => {
   try {
-    const { name, shortName, logoUrl, sport, players, createdBy } = req.body;
+    const { name, description, homeGround, city, logoUrl, sport, players, createdBy } = req.body;
 
     if (!name || !sport) {
       return res.status(400).json({ message: "Team name and sport are required." });
@@ -18,7 +18,7 @@ export const createTeam = async (req: Request, res: Response) => {
 
     const newTeam = new Team({
       name,
-      shortName,
+      description,
       logoUrl,
       sport: sport.toLowerCase(),
       players: players || [],
@@ -45,6 +45,8 @@ export const getTeams = async (req: Request, res: Response) => {
 
     const teams = await Team.find(filter)
       .populate("players", "name email")
+      .populate("createdBy", "name email")
+      .populate("captain", "name email")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, data: teams });
@@ -53,6 +55,7 @@ export const getTeams = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Error fetching teams", error: err.message });
   }
 };
+
 
 // ---------------- GET SINGLE TEAM ----------------
 export const getTeamById = async (req: Request, res: Response) => {

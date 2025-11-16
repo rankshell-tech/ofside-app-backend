@@ -19,6 +19,7 @@ import uploadRoutes from './routes/upload.routes';
 import matchRoutes from './routes/match.routes';
 import leaderboardRoutes from './routes/leaderboard.routes';
 import userRoutes from './routes/user.routes';
+import teamRoutes from './routes/team.routes';
 
 
 
@@ -69,6 +70,7 @@ setupSwagger(app);
 app.use("/api/users", userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/venues', venueRoutes);
+app.use('/api/teams', teamRoutes);
 app.use('/api/courts', courtRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/rulebook', rulebookRoutes);

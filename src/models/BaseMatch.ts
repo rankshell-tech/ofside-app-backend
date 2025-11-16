@@ -41,6 +41,7 @@ export interface IBaseMatch extends Document {
   meta?: Record<string, any>;
   createdAt?: Date;
   updatedAt?: Date;
+  date :string
 }
 
 
