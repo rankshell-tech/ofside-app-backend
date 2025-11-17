@@ -6,6 +6,7 @@ export interface IUserDocument extends Omit<IUser, '_id'>, Document {
 }
 
 const userSchema = new Schema<IUserDocument>({
+   _id: mongoose.Types.ObjectId,
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -61,6 +62,25 @@ const userSchema = new Schema<IUserDocument>({
   dateOfBirth: {
     type: Date,
   },
+socialAuth: {
+  googleId: {
+    type: String,
+    default: null
+  },
+  appleId: {
+    type: String,
+    default: null
+  }
+},
+  authMethod: {
+    type: String,
+    enum: ['email', 'google', 'apple'],
+    default: 'email'
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true,
 });
