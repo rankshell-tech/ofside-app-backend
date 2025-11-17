@@ -5,6 +5,8 @@ import {
   verifyOTP,
   getProfile,
   updateProfile,
+  loginWithGoogle,
+  loginWithApple,
 } from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth';
 import { authLimiter, otpLimiter } from '../middlewares/rateLimiter';
@@ -187,6 +189,7 @@ router.put('/update-profile', authenticate, updateProfile);
  */
 router.post('/resend-otp', authLimiter, otpLimiter, resendOTP);
 
-
+router.post('/login-with-google', loginWithGoogle);
+router.post('/login-with-apple', loginWithApple);
 
 export default router;
