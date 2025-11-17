@@ -15,6 +15,15 @@ export interface IUser {
   createdAt?: Date;
   updatedAt?: Date;
   dateOfBirth?: Date;
+    googleId: string;
+  appleId:string;
+  authMethod: string;
+  isEmailVerified: boolean;
+  socialAuth?: {
+    googleId?: string;
+    appleId?: string;
+  };
+ 
 }
 
 export interface IVenue {
