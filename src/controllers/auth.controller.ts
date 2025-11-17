@@ -14,6 +14,7 @@ import { asyncHandler, createError } from '../middlewares/errorHandler';
 import { AuthRequest } from '../middlewares/auth';
 import User from '../models/User';
 import OTP from '../models/OTP';
+import { OAuth2Client } from 'google-auth-library';
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const validatedData = signupSchema.parse(req.body);
@@ -318,5 +319,139 @@ export const resendOTP = asyncHandler(async (req: Request, res: Response) => {
       message: 'OTP resent successfully',
       data: { identifier, sentTo: 'sms' },
     });
+  }
+});
+
+const googleClient = new OAuth2Client();
+
+// Types for social auth
+interface GoogleAuthRequest {
+  accessToken: string;
+}
+interface AppleAuthRequest {
+  identityToken: string | null;
+  user: string;
+  email: string | null;
+  fullName: any;
+}
+// Make properties explicitly allow undefined
+interface SocialAuthUser {
+  id: string;
+  email: string | undefined;  // Explicitly allow undefined
+  name: string | undefined;   // Explicitly allow undefined
+  picture: string | undefined; // Explicitly allow undefined
+  mobile?: string | undefined;
+}
+
+/**
+ * Google Authentication
+ */
+export const googleAuth = asyncHandler(async (req: Request, res: Response) => {
+  const { accessToken }: GoogleAuthRequest = req.body;
+
+  if (!accessToken) {
+    throw createError('Google access token is required', 400);
+  }
+
+  try {
+    // Verify the Google token
+      const verifyOptions: any = {
+      idToken: accessToken,
+    };
+
+    // Only add audience if we have valid client IDs
+    const clientIds = [
+      process.env.GOOGLE_IOS_CLIENT_ID,
+      process.env.GOOGLE_ANDROID_CLIENT_ID,
+      process.env.GOOGLE_WEB_CLIENT_ID
+    ].filter(Boolean) as string[];
+
+    if (clientIds.length > 0) {
+      verifyOptions.audience = clientIds;
+    }
+
+    // Verify the Google token
+    const ticket = await googleClient.verifyIdToken(verifyOptions);
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      throw createError('Invalid Google token', 401);
+    }
+
+    // Extract user information from Google payload
+    const googleUser = {
+      id: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture
+    } as SocialAuthUser;
+
+    // Find or create user in your database
+    let user = await User.findOne({
+      $or: [
+        { email: googleUser.email },
+        { 'socialAuth.googleId': googleUser.id }
+      ]
+    });
+
+    if (user) {
+      // Update social auth info if needed
+      if (!user.socialAuth?.googleId) {
+        user.socialAuth = {
+          ...user.socialAuth,
+          googleId: googleUser.id
+        };
+        await user.save();
+      }
+    } else {
+      // Create new user with Google data
+      user = await User.create({
+        name: googleUser.name,
+        email: googleUser.email,
+        profilePicture: googleUser.picture,
+        isActive: true,
+        isEmailVerified: payload.email_verified || false,
+        socialAuth: {
+          googleId: googleUser.id
+        },
+        // Required fields from your schema - adjust as needed
+        mobile: '', // You might want to make this optional in your schema
+        role: 'user'
+      });
+    }
+
+    if (!user.isActive) {
+      throw createError('Account is not active', 400);
+    }
+
+   const tokenPayload = {
+      userId: (user._id as any).toString(), // <-- Add type assertion here
+      mobile: user.mobile,
+      role: user.role,
+    };
+
+    const tokens = generateTokens(tokenPayload);
+
+    res.status(200).json({
+      success: true,
+      message: 'Google sign-in successful',
+      data: {
+        user: {
+          _id: (user._id as any).toString(), // <-- And here
+          name: user.name,
+          email: user.email,
+          mobile: user.mobile,
+          profilePicture: user.profilePicture,
+          role: user.role,
+          isActive: user.isActive,
+          isEmailVerified: user.isEmailVerified
+        },
+        ...tokens,
+      },
+    });
+
+  } catch (error) {
+    console.error('Google auth error:', error);
+    throw createError('Google authentication failed', 401);
   }
 });
