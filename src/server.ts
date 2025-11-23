@@ -10,8 +10,26 @@ const startServer = async (): Promise<void> => {
     // Connect to database
     await connectDatabase();
     
+    // Create HTTP server from Express app
+    const server = http.createServer(app);
+    
+    // Initialize Socket.IO on the same server
+    const io = new Server(server, {
+      cors: {
+        origin: process.env.NODE_ENV === 'production' 
+          ? ['https://yourdomain.com', 'https://www.yourdomain.com']
+          : ['http://localhost:8081', 'http://localhost:19006', '*'],
+        methods: ['GET', 'POST'],
+        credentials: true,
+      },
+      transports: ['websocket', 'polling'],
+    });
+
+    // Register Socket.IO handlers
+    registerMatchSocket(io);
+    
     // Start server
-    const server = app.listen(config.port, () => {
+    server.listen(config.port, () => {
       console.log(`
 ╔══════════════════════════════════════════════════════════════════╗
 ║                 Ofside Management API                      ║
@@ -20,15 +38,11 @@ const startServer = async (): Promise<void> => {
 ║  📚 API Documentation: http://localhost:${config.port}/api-docs          ║
 ║  🏥 Health Check: http://localhost:${config.port}/health                ║
 ║  🌍 Environment: ${config.nodeEnv}                                 ║
+║  🔌 WebSocket enabled on port ${config.port}                            ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
       `);
     });
-
-const socketServer = http.createServer(app);
-const io = new Server(socketServer, { cors: { origin: "*" } });
-
-registerMatchSocket(io);
 
     const gracefulShutdown = (signal: string) => {
       console.log(`\n🔄 Received ${signal}. Starting graceful shutdown...`);

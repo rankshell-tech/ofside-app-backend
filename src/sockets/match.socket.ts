@@ -14,16 +14,28 @@ export default function registerMatchSocket(io: Server) {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token; // token sent from frontend
 
+    console.log('🔐 Socket authentication attempt:', {
+      hasToken: !!token,
+      tokenLength: token?.length,
+    });
+
     if (!token) {
+      console.error('❌ No token provided in socket handshake');
       return next(new Error("No token provided"));
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET is not set in environment variables');
+      return next(new Error("Server configuration error"));
     }
 
     try {
       const user = jwt.verify(token, process.env.JWT_SECRET as string);
       socket.data.user = user; // Attach user info to socket
+      console.log('✅ Socket authenticated for user:', (user as any)?._id || (user as any)?.id);
       next(); // Allow connection
     } catch (err) {
-      console.error("JWT verification failed:", err);
+      console.error("❌ JWT verification failed:", err);
       next(new Error("Invalid token"));
     }
   });
@@ -31,7 +43,12 @@ export default function registerMatchSocket(io: Server) {
 
 
   io.on("connection", (socket: Socket) => {
-    console.log(`🟢 ${socket.id} connected`);
+    console.log(`🟢 Socket ${socket.id} connected`);
+    console.log('📋 Connection details:', {
+      id: socket.id,
+      userId: (socket.data.user as any)?._id || (socket.data.user as any)?.id,
+      transport: socket.conn.transport.name,
+    });
 
     /* ------------------------------- JOIN ROOM ------------------------------- */
     socket.on("join_match", ({ matchId, sport }) => {
@@ -106,8 +123,13 @@ export default function registerMatchSocket(io: Server) {
 
 
     /* ------------------------------- DISCONNECT ------------------------------- */
-    socket.on("disconnect", () => {
-      console.log(`🔴 ${socket.id} disconnected`);
+    socket.on("disconnect", (reason) => {
+      console.log(`🔴 Socket ${socket.id} disconnected. Reason: ${reason}`);
+    });
+
+    /* ------------------------------- ERROR HANDLING ------------------------------- */
+    socket.on("error", (error) => {
+      console.error(`❌ Socket ${socket.id} error:`, error);
     });
   });
 }
