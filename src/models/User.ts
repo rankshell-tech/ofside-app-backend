@@ -38,10 +38,19 @@ const userSchema = new Schema<IUserDocument>({
     trim: true,
     uppercase: true,
   },
+  plan :{
+    type: String,
+    enum: ['free', 'elite', 'pro'],
+    default: 'elite',
+  },
   role: {
     type: Number,
-    enum: [0, 1, 2],
-    default: 0, // 0: user, 1: venue owner, 2: admin
+    enum: [0, 1, 9],
+    default: 0, // 0: user, 1: venue owner, 9: superadmin-ofside
+
+    // if the user is a venue owner still they will be considered as a user and perform all the actions of a user but they will be able to access the venue owner dashboard and update the venue details
+
+    // superadmin-ofside will have all the permissions to manage the entire platform
   },
   isActive: {
     type: Boolean,

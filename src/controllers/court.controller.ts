@@ -145,7 +145,28 @@ export const updateCourt = asyncHandler(async (req: AuthRequest, res: Response) 
   
   const validatedData = courtSchema.partial().parse(req.body);
   
-  Object.assign(court, validatedData);
+  // Map schema fields to model fields (similar to createCourt)
+  const mappedData: any = {};
+  if (validatedData.courtName !== undefined) mappedData.name = validatedData.courtName;
+  if (validatedData.venue !== undefined) mappedData.venue = validatedData.venue;
+  if (validatedData.sportType !== undefined) mappedData.sportType = validatedData.sportType;
+  if (validatedData.surfaceType !== undefined) mappedData.surfaceType = validatedData.surfaceType;
+  if (validatedData.size !== undefined) mappedData.size = validatedData.size;
+  if (validatedData.isIndoor !== undefined) mappedData.isIndoor = validatedData.isIndoor;
+  if (validatedData.hasLighting !== undefined) mappedData.hasLighting = validatedData.hasLighting;
+  if (validatedData.images !== undefined) mappedData.images = validatedData.images;
+  if (validatedData.slotDuration !== undefined) mappedData.slotDuration = validatedData.slotDuration;
+  if (validatedData.maxPeople !== undefined) mappedData.maxPeople = validatedData.maxPeople;
+  if (validatedData.pricePerSlot !== undefined) mappedData.pricePerSlot = validatedData.pricePerSlot;
+  if (validatedData.peakEnabled !== undefined) mappedData.peakEnabled = validatedData.peakEnabled;
+  if (validatedData.peakDays !== undefined) mappedData.peakDays = validatedData.peakDays;
+  if (validatedData.peakStart !== undefined) mappedData.peakStart = validatedData.peakStart;
+  if (validatedData.peakEnd !== undefined) mappedData.peakEnd = validatedData.peakEnd;
+  if (validatedData.peakPricePerSlot !== undefined) mappedData.peakPricePerSlot = validatedData.peakPricePerSlot;
+  if (validatedData.isActive !== undefined) mappedData.isActive = validatedData.isActive;
+  if (validatedData.days !== undefined) mappedData.days = validatedData.days;
+  
+  Object.assign(court, mappedData);
   await court.save();
   
   res.status(200).json({

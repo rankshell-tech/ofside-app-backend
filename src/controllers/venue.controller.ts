@@ -4,6 +4,7 @@ import { AuthRequest } from '../middlewares/auth';
 import Venue from '../models/Venue';
 import Court from '../models/Court';
 import User from '../models/User';
+import Payment from '../models/Payment';
 
 interface CourtInput {
   courtName: string;
@@ -50,6 +51,7 @@ export const createVenue = asyncHandler(async (req: AuthRequest, res: Response) 
     amenities,
     courts,
     declarationAgreed,
+    paymentId,
   } = req.body;
 
   // Required fields check
@@ -170,6 +172,23 @@ export const createVenue = asyncHandler(async (req: AuthRequest, res: Response) 
   // Update venue with court IDs
   newVenue.courts = createdCourts;
   await newVenue.save();
+
+  // Link payment to venue if paymentId is provided
+  if (paymentId) {
+    try {
+      await Payment.findOneAndUpdate(
+        { paymentId },
+        {
+          venueId: newVenue._id,
+          status: 'completed',
+        },
+        { new: true }
+      );
+    } catch (paymentError) {
+      // Log but don't fail venue creation if payment update fails
+      console.error('Failed to link payment to venue:', paymentError);
+    }
+  }
 
   res.status(201).json({
     success: true,

@@ -6,8 +6,9 @@ export interface IUser {
   username?: string;
   mobile: string;
   email?: string;
+  plan: string;
   referralCode?: string;
-  role: 0 | 1 | 2; // 0: user, 1: venue owner, 2: admin
+  role: number // 0: user, 1: venue owner, 2: admin
   isActive: boolean;
   profilePicture?: string;
   gender?: 'male' | 'female' | 'other';
@@ -34,9 +35,13 @@ export interface IVenue {
   description: string;
   amenities?: string[];
   is24HoursOpen: boolean;
+  days: string[];
+  openTime: string;
+  closeTime: string;
   location: {
     address: string;
     city: string;
+    state?: string;
     country?: string;
     pincode: string;
     coordinates: {
@@ -54,7 +59,7 @@ export interface IVenue {
     phone?: string;
     email?: string;
   };
-  courts: string[]; // Array of Court IDs
+  courts: string[]; // Array of Court IDs 
   declarationAgreed?: boolean;
   rating?: number;
   reviewsCount?: number;

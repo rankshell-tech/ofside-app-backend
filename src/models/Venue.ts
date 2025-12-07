@@ -24,6 +24,15 @@ const venueSchema = new Schema<IVenueDocument>({
   amenities: [{
     type: String,
   }],
+  days: [{
+    type: String,
+  }],
+  openTime: {
+    type: String,
+  },
+  closeTime: {
+    type: String,
+  },
   is24HoursOpen: {
     type: Boolean,
     default: false,

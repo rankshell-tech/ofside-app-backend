@@ -20,6 +20,8 @@ import matchRoutes from './routes/match.routes';
 import leaderboardRoutes from './routes/leaderboard.routes';
 import userRoutes from './routes/user.routes';
 import teamRoutes from './routes/team.routes';
+import paymentRoutes from './routes/payment.routes';
+import subscriptionPlanRoutes from './routes/subscriptionPlan.routes';
 
 
 
@@ -78,6 +80,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/leaderboards', leaderboardRoutes);
 app.use('/api/userMatches', userMatchesRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/subscription-plans', subscriptionPlanRoutes);
 
 // Welcome endpoint
 app.get('/', (_, res) => {
